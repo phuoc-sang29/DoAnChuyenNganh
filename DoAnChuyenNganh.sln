@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "backend-saha", "backend-saha\backend-saha.csproj", "{FEFAF7AD-F593-4872-2BD3-EB6070E6E441}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FEFAF7AD-F593-4872-2BD3-EB6070E6E441}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FEFAF7AD-F593-4872-2BD3-EB6070E6E441}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FEFAF7AD-F593-4872-2BD3-EB6070E6E441}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FEFAF7AD-F593-4872-2BD3-EB6070E6E441}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {16E26078-4263-4AA4-8B17-6E737194B020}
+	EndGlobalSection
+EndGlobal
