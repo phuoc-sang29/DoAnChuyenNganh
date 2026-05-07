@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import ChatAI from './ChatAI.jsx';
+// Xóa import ChatAI ở đây vì đã chuyển sang main.jsx rồi
 import { supabase } from './services/supabase';
 import { 
   Search, ShoppingCart, User, Phone, ShieldCheck, 
   ChevronRight, HeartPulse, Sparkles, MapPin, Mail, 
-  Facebook, Instagram, Youtube, Clock,
-  Pill, Leaf, Eye // Import thêm các Icon xịn sò
+  Facebook, Instagram, Youtube, Clock, LogOut, // Thêm LogOut vào đây
+  Pill, Leaf, Eye 
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { useCart } from './CartContext';
+
 /// === DỮ LIỆU DANH MỤC ===
 const mockCategories = [
   { id: 1, name: 'Vitamin & Khoáng chất', icon: '💊' },
@@ -17,7 +18,7 @@ const mockCategories = [
   { id: 3, name: 'Sinh lý & Nội tiết tố', icon: '🧬' },
   { id: 4, name: 'Mắt & Thị lực', icon: '👁️' },
   { id: 5, name: 'Tiêu hóa', icon: '🌿' },
-  { id: 6, name: 'Thần kinh & Không / Não', icon: '🧠' },
+  { id: 6, name: 'Thần kinh & Não', icon: '🧠' },
   { id: 7, name: 'Hỗ trợ làm đẹp', icon: '✨' },
   { id: 8, name: 'Đường huyết & Tiểu đường', icon: '🩸' },
   { id: 9, name: 'Tim mạch & Huyết áp', icon: '❤️' },
@@ -29,12 +30,26 @@ const mockCategories = [
 
 const App = () => {
   const navigate = useNavigate();
+  const { cartCount } = useCart();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const navigate = useNavigate();
   
-  const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [menuProducts, setMenuProducts] = useState([]);
+  // ==========================================
+  // KHAI BÁO CÁC STATE BỊ MẤT (ĐÃ KHÔI PHỤC)
+  // ==========================================
+  const [searchQuery, setSearchQuery] = useState('');
+  const [user, setUser] = useState(null);
+  const [realProducts, setRealProducts] = useState([]);
+  const [blogs, setBlogs] = useState([]);
+  const [isAnimating, setIsAnimating] = useState(false);
+
+  // Hiệu ứng giật giật khi giỏ hàng thay đổi số lượng
+  useEffect(() => {
+    if (cartCount > 0) {
+      setIsAnimating(true);
+      const timer = setTimeout(() => setIsAnimating(false), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [cartCount]);
 
   useEffect(() => {
     // 1. Kiểm tra đăng nhập
@@ -67,15 +82,12 @@ const App = () => {
     fetchBlogs();
   }, []);
 
-  // ==========================================
-  // HÀM ĐĂNG XUẤT ĐÃ ĐƯỢC CẬP NHẬT
-  // ==========================================
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setUser(null);
     navigate('/');
-    window.location.reload(); // Tải lại trang để kích hoạt Giỏ hàng Guest
+    window.location.reload(); 
   };
 
   return (
@@ -88,7 +100,6 @@ const App = () => {
         </div>
       </div>
 
-      {/* 2. HEADER */}
       <header className="sticky top-0 z-50 bg-white shadow-sm border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between gap-8">
           <div onClick={() => navigate('/')} className="flex items-center gap-2 cursor-pointer group shrink-0">
@@ -104,7 +115,6 @@ const App = () => {
             placeholder="Tìm sản phẩm ... " 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            // Nhấn Enter cũng tìm luôn
             onKeyDown={(e) => e.key === 'Enter' && navigate(`/products?search=${searchQuery}`)}
             className="w-full pl-5 pr-14 py-2.5 bg-slate-50 border border-slate-200 rounded-full focus:bg-white focus:ring-2 focus:ring-brand outline-none transition-all text-sm" 
         />
@@ -118,7 +128,6 @@ const App = () => {
 
           <div className="flex gap-6 items-center shrink-0">
             
-            {/* KIỂM TRA ĐĂNG NHẬP */}
             {user ? (
               <div className="flex items-center gap-4">
                 <div 
@@ -133,7 +142,6 @@ const App = () => {
                 </div>
                 <div className="w-px h-8 bg-slate-200"></div>
                 
-                {/* NÚT THOÁT ĐÃ ĐƯỢC THÊM HIỆU ỨNG VÀ HÀM LOGOUT */}
                 <div 
                   onClick={handleLogout}
                   className="flex flex-col items-center cursor-pointer text-slate-400 hover:text-rose-500 transition-colors group"
@@ -142,7 +150,6 @@ const App = () => {
                   <LogOut size={20} className="mb-0.5 group-hover:-translate-y-0.5 transition-transform" />
                   <span className="text-[10px] font-bold uppercase tracking-wider">Thoát</span>
                 </div>
-
               </div>
             ) : (
               <div onClick={() => navigate('/login')} className="flex flex-col items-center cursor-pointer text-slate-500 hover:text-brand transition-colors">
@@ -153,10 +160,8 @@ const App = () => {
 
             <div onClick={() => navigate('/cart')} className="flex flex-col items-center cursor-pointer text-slate-500 hover:text-brand transition-colors relative group">
             <div className="relative">
-            {/* Icon xe đẩy */}
             <ShoppingCart size={22} className="mb-0.5 group-hover:scale-110 transition-transform" />
     
-            {/* CHẤM ĐỎ BIẾT NHẢY */}
             {cartCount > 0 && (
               <span 
                 className={`absolute -top-2 -right-2 text-white text-[9px] font-black w-4 h-4 flex items-center justify-center rounded-full ring-2 ring-white transition-all duration-300 ease-out
@@ -189,17 +194,11 @@ const App = () => {
                   <div className="flex-1">
                     <h4 className="font-bold text-brand mb-4 pb-2 border-b border-orange-50 uppercase text-xs tracking-widest">Thực phẩm bổ sung</h4>
                     <ul className="space-y-3 text-sm text-slate-600">
-                      {/* Gắn ID = 1 */}
                       <li onClick={() => navigate('/products?category=1')} className="hover:text-brand cursor-pointer transition-colors">Vitamins & Khoáng chất</li>
-                      {/* Gắn ID = 12 */}
                       <li onClick={() => navigate('/products?category=12')} className="hover:text-brand cursor-pointer transition-colors">Bổ Gan / Thải độc</li>
-                      {/* Gắn ID = 4 */}
                       <li onClick={() => navigate('/products?category=4')} className="hover:text-brand cursor-pointer transition-colors">Bổ Mắt</li>
-                      {/* Gắn ID = 6 */}
                       <li onClick={() => navigate('/products?category=6')} className="hover:text-brand cursor-pointer transition-colors">Bổ Não / Giảm Stress</li>
-                      {/* Gắn ID = 5 (Tạm dùng Tiêu hóa cho Giảm cân) */}
                       <li onClick={() => navigate('/products?category=5')} className="hover:text-brand cursor-pointer transition-colors">Hỗ trợ giảm cân</li>
-                      {/* Gắn ID = 11 */}
                       <li onClick={() => navigate('/products?category=11')} className="hover:text-brand cursor-pointer transition-colors">Xương khớp & Sụn</li>
                     </ul>
                   </div>
@@ -207,7 +206,6 @@ const App = () => {
                   <div className="flex-1">
                     <h4 className="font-bold text-brand mb-4 pb-2 border-b border-orange-50 uppercase text-xs tracking-widest">Chăm sóc sắc đẹp</h4>
                     <ul className="space-y-3 text-sm text-slate-600">
-                      {/* Tất cả Sắc đẹp gắn ID = 7 */}
                       <li onClick={() => navigate('/products?category=7')} className="hover:text-brand cursor-pointer transition-colors">Collagen</li>
                       <li onClick={() => navigate('/products?category=7')} className="hover:text-brand cursor-pointer transition-colors">Kem chống nắng</li>
                       <li onClick={() => navigate('/products?category=7')} className="hover:text-brand cursor-pointer transition-colors">Kem dưỡng da</li>
@@ -219,7 +217,6 @@ const App = () => {
                   <div className="flex-1">
                     <h4 className="font-bold text-brand mb-4 pb-2 border-b border-orange-50 uppercase text-xs tracking-widest">Mẹ & Bé</h4>
                     <ul className="space-y-3 text-sm text-slate-600">
-                      {/* Tất cả Mẹ & Bé tạm gắn ID = 1 */}
                       <li onClick={() => navigate('/products?category=1')} className="hover:text-brand cursor-pointer transition-colors">DHA cho bé</li>
                       <li onClick={() => navigate('/products?category=1')} className="hover:text-brand cursor-pointer transition-colors">Canxi cho bé</li>
                       <li onClick={() => navigate('/products?category=1')} className="hover:text-brand cursor-pointer transition-colors">Vitamin tổng hợp</li>
@@ -254,7 +251,7 @@ const App = () => {
       onClick={() => {
         if (item === 'Bài viết') navigate('/blogs');
         else if (item === 'Thương hiệu') navigate('/brands');
-        else if (item === 'Xuất xứ') navigate('/origins'); // THÊM DÒNG NÀY
+        else if (item === 'Xuất xứ') navigate('/origins');
         else navigate('/products');
       }}
       className="group relative py-3 cursor-pointer"
@@ -297,15 +294,14 @@ const App = () => {
         </div>
       </div>
 
-      {/* DANH MỤC TRUNG TÂM (Đã thay đổi Icon và Gắn Link chuyển trang) */}
+      {/* DANH MỤC TRUNG TÂM */}
       <div className="max-w-7xl mx-auto px-4 mt-12">
         <h3 className="text-2xl font-black text-slate-900 mb-6">Danh Mục Chăm Sóc</h3>
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-          {categories
+          {mockCategories
             .filter(cat => ['Vitamin & Khoáng chất', 'Hỗ trợ làm đẹp', 'Tiêu hóa', 'Miễn dịch & Đề kháng', 'Mắt & Thị lực'].includes(cat.name))
             .slice(0, 5)
             .map((cat) => {
-              // Gán Icon Lucide tương ứng
               let IconComponent = Sparkles; 
               if (cat.name === 'Vitamin & Khoáng chất') IconComponent = Pill;
               if (cat.name === 'Tiêu hóa') IconComponent = Leaf;
@@ -316,7 +312,6 @@ const App = () => {
               return (
                 <div 
                   key={cat.id} 
-                  // Gắn State categoryId để gửi sang trang Danh sách sản phẩm
                   onClick={() => navigate('/products', { state: { categoryId: cat.id } })} 
                   className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 text-center cursor-pointer hover:border-brand/50 hover:shadow-md transition-all group"
                 >
@@ -369,7 +364,7 @@ const App = () => {
           
           {realProducts.length === 0 && (
             <div className="col-span-full text-center py-10 text-slate-500">
-              Chưa có sản phẩm nào trong hệ thống! Hào vào Backend thêm vài dòng nhé.
+              Đang tải sản phẩm từ hệ thống...
             </div>
           )}
         </div>
@@ -402,9 +397,7 @@ const App = () => {
 
                 <div className="p-6 flex flex-col flex-grow">
                   <div className="flex items-center gap-2 text-slate-400 text-sm mb-3">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                    </svg>
+                    <Clock className="w-4 h-4" />
                     {new Date(blog.createdAt).toLocaleDateString('vi-VN')}
                   </div>
                   
@@ -482,18 +475,12 @@ const App = () => {
         </div>
       </footer>
 
-      {/* 8. NÚT FLOATING */}
-      <div className="fixed bottom-8 right-8 z-50 flex flex-col gap-4 items-end">
+      {/* 8. NÚT ĐIỆN THOẠI FLOATING (Đã xóa nút Chat trùng lặp) */}
+      <div className="fixed bottom-8 right-8 z-[40] flex flex-col gap-4 items-end">
         <button className="bg-green-500 text-white p-3.5 rounded-full shadow-lg hover:scale-110 hover:bg-green-600 transition-all">
           <Phone size={24} />
         </button>
-        <button className="bg-brand text-white p-4 rounded-full shadow-xl shadow-brand/30 hover:scale-110 hover:bg-brand-hover transition-all flex items-center gap-3 group">
-          <Sparkles size={26} className="animate-pulse" />
-          <span className="font-bold hidden group-hover:block whitespace-nowrap overflow-hidden origin-right transition-all">Hỏi AI SaHa</span>
-        </button>
       </div>
-
-      <ChatAI />
     </div>
   );
 };

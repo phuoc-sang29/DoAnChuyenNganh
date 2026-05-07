@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("backend-saha")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+f8ba404ffb366793075f53dd603bdf0e4ecc38ae")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e9df3ce96e4c263ae8dec0655f8af3761c757254")]
 [assembly: System.Reflection.AssemblyProductAttribute("backend-saha")]
 [assembly: System.Reflection.AssemblyTitleAttribute("backend-saha")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
