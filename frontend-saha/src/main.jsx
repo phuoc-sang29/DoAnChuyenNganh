@@ -17,6 +17,9 @@ import AdminDashboard from './AdminDashboard.jsx'
 import { CartProvider } from './CartContext';
 import ChatAI from './ChatAI.jsx';
 import './index.css';
+import Profile from './Profile.jsx'
+import OrderHistory from './OrderHistory.jsx'
+import BlogDetail from './BlogDetail.jsx'
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
     <GoogleOAuthProvider clientId="MÃ_CLIENT_CỦA_BẠN_NẾU_CÓ">
@@ -29,7 +32,15 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
             <Route path="/products" element={<ProductPage />} />
-            {/* ... các Route khác của bạn cứ giữ nguyên */}
+            <Route path="/product/:id" element={<ProductDetail />} />
+            <Route path="/cart" element={<Cart />} />
+            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/brands" element={<Brands />} />
+            <Route path="/origins" element={<Origins />} />
+            <Route path="/blogs" element={<Blogs />} />
+            <Route path="/blog/:id" element={<BlogDetail />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/order-history" element={<OrderHistory />} />
           </Routes>
 
           {/* ChatAI nằm trong BrowserRouter nhưng ngoài Routes */}
