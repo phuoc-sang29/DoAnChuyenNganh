@@ -1,7 +1,7 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { GoogleOAuthProvider } from '@react-oauth/google' // Bổ sung import của Google
+import { GoogleOAuthProvider } from '@react-oauth/google'
 
 // Các trang chính
 import App from './App.jsx'
@@ -10,6 +10,7 @@ import Register from './Register.jsx'
 import ProductDetail from './ProductDetail.jsx'
 import ProductPage from './ProductPage.jsx'
 import Cart from './Cart.jsx'
+import Checkout from './Checkout.jsx' // ĐÃ BỔ SUNG DÒNG NÀY
 import Blogs from './Blogs.jsx'
 import Brands from './Brands.jsx'
 import Origins from './Origins.jsx'
@@ -20,11 +21,11 @@ import './index.css';
 import Profile from './Profile.jsx'
 import OrderHistory from './OrderHistory.jsx'
 import BlogDetail from './BlogDetail.jsx'
+
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <GoogleOAuthProvider clientId="MÃ_CLIENT_CỦA_BẠN_NẾU_CÓ">
-
-      {/* BẮT BUỘC PHẢI CÓ THẺ NÀY BỌC BÊN NGOÀI */}
+    {/* Nhớ thay MÃ_CLIENT xịn vào đây nếu bạn có xài Google Login nhé */}
+    <GoogleOAuthProvider clientId="YOUR_GOOGLE_CLIENT_ID">
       <CartProvider>
         <BrowserRouter>
           <Routes>
@@ -43,12 +44,10 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             <Route path="/order-history" element={<OrderHistory />} />
           </Routes>
 
-          {/* ChatAI nằm trong BrowserRouter nhưng ngoài Routes */}
+          {/* ChatAI nằm trong BrowserRouter nhưng ngoài Routes để hiện ở mọi trang */}
           <ChatAI />
-
         </BrowserRouter>
       </CartProvider>
-
     </GoogleOAuthProvider>
   </React.StrictMode>
 )
