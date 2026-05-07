@@ -1,7 +1,7 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 
-const API_URL = 'http://localhost:5246/api/Blogs';
+const API_URL = import.meta.env.VITE_API_URL + '/api/Blogs';
 
 async function crawlDeepBlogs() {
     console.log("🚀 Đang khởi động Siêu Crawler cào nội dung thật...");

@@ -22,7 +22,7 @@ const ForgotPassword = () => {
     setLoading(true);
     try {
       // Gọi API C# yêu cầu gửi mã OTP (Mình sẽ viết Backend sau)
-      await axios.post('http://localhost:5246/api/Auth/forgot-password', { email });
+      await axios.post(import.meta.env.VITE_API_URL + '/api/Auth/forgot-password', { email });
       
       alert("Mã xác nhận đã được gửi đến email của bạn!");
       setStep(2); // Chuyển sang bước 2
@@ -39,7 +39,7 @@ const ForgotPassword = () => {
     setLoading(true);
     try {
       // Gọi API C# xác nhận OTP và lưu mật khẩu mới
-      await axios.post('http://localhost:5246/api/Auth/reset-password', { 
+      await axios.post(import.meta.env.VITE_API_URL + '/api/Auth/reset-password', { 
         email, 
         otp, 
         newPassword 

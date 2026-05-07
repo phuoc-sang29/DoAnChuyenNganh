@@ -17,7 +17,7 @@ const OrderHistory = () => {
       }
 
       try {
-        const response = await axios.get(`http://localhost:5246/api/Orders/${currentUser.id}`);
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/Orders/${currentUser.id}`);
         setOrders(response.data);
       } catch (error) {
         console.error("Lỗi lấy đơn hàng:", error);

@@ -62,7 +62,7 @@ const Brands = () => {
   useEffect(() => {
     const fetchBrands = async () => {
       try {
-        const res = await axios.get('http://localhost:5246/api/Products');
+        const res = await axios.get(import.meta.env.VITE_API_URL + '/api/Products');
         const products = res.data;
 
         const groupedBrands = {};

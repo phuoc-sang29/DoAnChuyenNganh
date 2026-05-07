@@ -21,7 +21,7 @@ const Products = () => {
     if (brandFilter) params.append('brand', brandFilter);
     if (categoryFilter) params.append('categoryId', categoryFilter);
 
-    const apiUrl = `http://localhost:5246/api/products?${params.toString()}`;
+    const apiUrl = `${import.meta.env.VITE_API_URL}/api/products?${params.toString()}`;
 
     axios.get(apiUrl)
       .then(res => {

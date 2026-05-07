@@ -63,7 +63,7 @@ const Checkout = () => {
       };
 
       // 3. Bắn sang C# qua cổng API Orders
-      const response = await axios.post('http://localhost:5246/api/Orders', orderPayload);
+      const response = await axios.post(import.meta.env.VITE_API_URL + '/api/Orders', orderPayload);
 
       if(response.status === 200 || response.status === 201) {
         // Hủy giỏ hàng ngay khi tạo đơn thành công trên DB

@@ -45,7 +45,7 @@ const BlogDetail = () => {
   useEffect(() => {
     const fetchBlogDetail = async () => {
       try {
-        const res = await axios.get(`http://localhost:5246/api/Blogs/${id}`);
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/Blogs/${id}`);
         setBlog(res.data);
       } catch (error) {
         console.error("Lỗi tải bài viết:", error);

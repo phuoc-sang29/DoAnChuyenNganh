@@ -17,7 +17,7 @@ const Login = () => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await axios.post('http://localhost:5246/api/Auth/login', { email, password });
+      const res = await axios.post(import.meta.env.VITE_API_URL + '/api/Auth/login', { email, password });
       localStorage.setItem('token', res.data.token);
       localStorage.setItem('user', JSON.stringify(res.data.user)); 
       alert("Đăng nhập thành công!");
@@ -44,7 +44,7 @@ const Login = () => {
         );
 
         // Gửi thông tin sang Backend C# (Hào nhớ tạo API này ở C# nhé)
-        const res = await axios.post('http://localhost:5246/api/Auth/google-login', {
+        const res = await axios.post(import.meta.env.VITE_API_URL + '/api/Auth/google-login', {
           email: userInfo.data.email,
           fullName: userInfo.data.name,
           googleId: userInfo.data.sub

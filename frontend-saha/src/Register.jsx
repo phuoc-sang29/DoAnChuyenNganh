@@ -38,7 +38,7 @@ const Register = () => {
         FullName: formData.fullName,
       };
 
-      const res = await axios.post('http://localhost:5246/api/Auth/register', payload);
+      const res = await axios.post(import.meta.env.VITE_API_URL + '/api/Auth/register', payload);
 
       alert(res.data.message || "Đăng ký thành công!");
       navigate('/login');

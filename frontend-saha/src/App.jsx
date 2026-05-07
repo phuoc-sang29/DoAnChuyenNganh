@@ -61,7 +61,7 @@ const App = () => {
     // 2. Lấy danh sách sản phẩm thật
     const fetchProducts = async () => {
       try {
-        const res = await axios.get('http://localhost:5246/api/Products');
+        const res = await axios.get(import.meta.env.VITE_API_URL + '/api/Products');
         setRealProducts(res.data);
       } catch (error) {
         console.error("Lỗi lấy sản phẩm từ Backend:", error);
@@ -71,7 +71,7 @@ const App = () => {
     // 3. Lấy danh sách bài viết thật
     const fetchBlogs = async () => {
       try {
-        const res = await axios.get('http://localhost:5246/api/Blogs');
+        const res = await axios.get(import.meta.env.VITE_API_URL + '/api/Blogs');
         setBlogs(res.data);
       } catch (error) {
         console.error("Lỗi lấy danh sách bài viết:", error);
