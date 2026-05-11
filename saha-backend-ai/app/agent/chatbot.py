@@ -7,8 +7,6 @@ from app.tools.sql_search import search_saha_products, get_product_details
 
 logger = logging.getLogger(__name__)
 
-_client = genai.Client(api_key=API_KEYS[0])
-
 # ====================================================================
 # BỘ NÃO AI ĐIỀU HÀNH (GIỮ NGUYÊN LUẬT CŨ + THÊM QUYỀN NĂNG MỚI)
 # ====================================================================
@@ -67,33 +65,44 @@ _config = types.GenerateContentConfig(
 # === LOGIC XOAY VÒNG KEY ===
 current_key_idx = 0
 _client = None
-_chat_session = None
 
-def _khoi_tao_chat():
-    global _client, _chat_session, current_key_idx
+def _khoi_tao_client():
+    global _client, current_key_idx
     key = API_KEYS[current_key_idx]
-    logger.info("Đang khởi tạo Agent bằng Key số %d...", current_key_idx + 1)
-    
+    logger.info("Đang khởi tạo Client bằng Key số %d...", current_key_idx + 1)
     _client = genai.Client(api_key=key)
-    _chat_session = _client.chats.create(
-        model=CHAT_MODEL,
-        config=_config
-    )
-    logger.info("Agent khởi tạo thành công.")
+    logger.info("Client khởi tạo thành công.")
 
 try:
-    _khoi_tao_chat()
+    _khoi_tao_client()
 except Exception as e:
-    logger.error("Thất bại khi khởi tạo Agent lần đầu: %s", e)
+    logger.error("Thất bại khi khởi tạo Client lần đầu: %s", e)
 
-def chat_with_saha(user_message: str) -> str:
-    global current_key_idx
+
+def chat_with_saha(user_message: str, history: list = None) -> str:
+    """
+    Hàm giao tiếp với AI, có hỗ trợ truyền ngữ cảnh lịch sử.
+    """
+    global current_key_idx, _client
     max_retries = len(API_KEYS)
+    
+    # Chuẩn hóa biến history nếu bị rỗng
+    if history is None:
+        history = []
     
     for attempt in range(max_retries):
         try:
-            logger.info("Nhan tin nhan: '%s' (Đang dùng Key %d)", user_message, current_key_idx + 1)
-            response = _chat_session.send_message(user_message)
+            logger.info("Nhan tin nhan: '%s' (Đang dùng Key %d, có %d tin nhắn trong lịch sử)", 
+                        user_message, current_key_idx + 1, len(history))
+            
+            # Tạo một phiên chat MỚI hoàn toàn cho mỗi request, truyền lịch sử từ DB vào
+            chat_session = _client.chats.create(
+                model=CHAT_MODEL,
+                config=_config,
+                history=history # Truyền lịch sử cá nhân hóa vào đây
+            )
+            
+            response = chat_session.send_message(user_message)
             return response.text
             
         except Exception as e:
@@ -101,9 +110,18 @@ def chat_with_saha(user_message: str) -> str:
             if any(err in error_msg for err in ["429", "RESOURCE_EXHAUSTED", "403", "PERMISSION_DENIED", "503", "UNAVAILABLE", "500"]):
                 logger.warning("Key số %d bị lỗi API. Đang chuyển sang Key tiếp theo...", current_key_idx + 1)
                 current_key_idx = (current_key_idx + 1) % len(API_KEYS)
-                _khoi_tao_chat()
+                _khoi_tao_client() # Khởi tạo lại Client với key mới
                 continue
             else:
                 raise e
                 
     raise RuntimeError("Tất cả API Keys đều đã cạn kiệt hoặc bị khóa. Vui lòng thử lại sau!")
+
+
+def get_status():
+    """Hàm trả về trạng thái của chatbot (Dùng cho api debug)."""
+    return {
+        "current_key_index": current_key_idx,
+        "total_keys": len(API_KEYS),
+        "is_client_initialized": _client is not None
+    }
