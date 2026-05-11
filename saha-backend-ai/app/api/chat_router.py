@@ -4,6 +4,8 @@ from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import List, Optional
 from app.agent.chatbot import chat_with_saha
+from supabase import create_client
+from app.core.config import SUPABASE_URL, SUPABASE_KEY
 
 logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/api", tags=["Chat"])
@@ -11,6 +13,7 @@ router = APIRouter(prefix="/api", tags=["Chat"])
 
 class ChatRequest(BaseModel):
     message: str
+    user_id: str  # Dòng mới được thêm vào để nhận ID từ React
 
 
 class ProductCard(BaseModel):
@@ -56,22 +59,43 @@ def _parse_products_from_answer(answer: str, supabase_client) -> Optional[List[P
 @router.post("/chat", response_model=ChatResponse)
 async def process_chat(request: ChatRequest):
     user_msg = request.message.strip()
+    u_id = request.user_id
 
     if not user_msg:
         raise HTTPException(status_code=400, detail="Tin nhan khong duoc de trong.")
 
     try:
-        # Goi AI Agent xu ly tin nhan
-        raw_answer = chat_with_saha(user_msg)
+        # Khởi tạo Supabase ngay từ đầu để dùng chung cho cả History và Product Parsing
+        sb = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+        # 1. LẤY LỊCH SỬ CHAT TỪ SUPABASE
+        history_data = sb.table("chat_logs") \
+            .select("role, content") \
+            .eq("user_id", u_id) \
+            .order("created_at", desc=True) \
+            .limit(10) \
+            .execute()
+        
+        # Đảo ngược lại để đúng thứ tự thời gian
+        context = [{"role": h['role'], "parts": [h['content']]} for h in reversed(history_data.data)]
+
+        # 2. GỌI AI AGENT (Truyền thêm context vào để AI nhớ)
+        # Lưu ý: Lát nữa bạn mở file app/agent/chatbot.py ra và thêm tham số history vào hàm chat_with_saha nhé
+        raw_answer = chat_with_saha(user_msg, history=context)
 
         # Lam sach the [ID:xxx] khoi cau tra loi hien thi cho nguoi dung
         clean_answer = re.sub(r"\s*\[ID:[^\]]+\]", "", raw_answer).strip()
 
         # Parse danh sach san pham neu AI co tra ve
-        from supabase import create_client
-        from app.core.config import SUPABASE_URL, SUPABASE_KEY
-        sb = create_client(SUPABASE_URL, SUPABASE_KEY)
         products = _parse_products_from_answer(raw_answer, sb)
+
+        # 3. LƯU TIN NHẮN VÀO SUPABASE
+        # Lưu raw_answer để AI lần sau nhớ cả các thẻ ID sản phẩm nó từng gợi ý
+        log_data = [
+            {"user_id": u_id, "role": "user", "content": user_msg},
+            {"user_id": u_id, "role": "model", "content": raw_answer} 
+        ]
+        sb.table("chat_logs").insert(log_data).execute()
 
         return ChatResponse(
             status="success",

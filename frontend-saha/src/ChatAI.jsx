@@ -2,6 +2,10 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Sparkles, Send, X, Bot, ShoppingBag, ChevronRight, Minus, Maximize2 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
+// LƯU Ý QUAN TRỌNG: Bạn cần import file cấu hình supabase của bạn vào đây. 
+// Hãy sửa lại đường dẫn './supabaseClient' cho đúng với project của bạn nhé!
+import { supabase } from './supabaseClient'; 
+
 const MessageBubble = ({ msg, onViewProduct }) => {
   const isBot = msg.isBot;
 
@@ -52,21 +56,18 @@ const MessageBubble = ({ msg, onViewProduct }) => {
 
 const ChatAI = () => {
   const navigate = useNavigate();
-  const location = useLocation(); // Hook để lấy đường dẫn URL hiện tại
+  const location = useLocation();
 
-  // 1. STATE LƯU TRẠNG THÁI ĐÓNG/MỞ
   const [isOpen, setIsOpen] = useState(() => {
     const savedState = sessionStorage.getItem('saha_chat_is_open');
     return savedState === 'true';
   });
 
-  // 2. STATE LƯU TRẠNG THÁI THU NHỎ (MINIMIZE)
   const [isMinimized, setIsMinimized] = useState(() => {
     const savedMin = sessionStorage.getItem('saha_chat_is_minimized');
     return savedMin === 'true';
   });
 
-  // 3. LẤY LỊCH SỬ TIN NHẮN TỪ SESSION
   const [messages, setMessages] = useState(() => {
     const savedMessages = sessionStorage.getItem('saha_chat_history');
     if (savedMessages) {
@@ -86,18 +87,15 @@ const ChatAI = () => {
   const [loading, setLoading] = useState(false);
   const containerRef = useRef(null);
 
-  // Lưu lịch sử chat
   useEffect(() => {
     sessionStorage.setItem('saha_chat_history', JSON.stringify(messages));
   }, [messages]);
 
-  // Lưu trạng thái đóng/mở và thu nhỏ
   useEffect(() => {
     sessionStorage.setItem('saha_chat_is_open', isOpen.toString());
     sessionStorage.setItem('saha_chat_is_minimized', isMinimized.toString());
   }, [isOpen, isMinimized]);
 
-  // Cuộn xuống cuối khi có tin nhắn mới (chỉ chạy khi không bị thu nhỏ)
   useEffect(() => {
     if (containerRef.current && !isMinimized) {
       containerRef.current.scrollTop = containerRef.current.scrollHeight;
@@ -114,13 +112,21 @@ const ChatAI = () => {
     setLoading(true);
 
     try {
+      // 1. LẤY ID NGƯỜI DÙNG TỪ SUPABASE
+      const { data: { user } } = await supabase.auth.getUser();
+      const currentUserId = user ? user.id : "guest-session-anonymous";
+
+      // 2. GỬI KÈM USER_ID TRONG BODY
       const res = await fetch(import.meta.env.VITE_AI_URL + '/api/chat', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Accept: 'application/json',
         },
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({ 
+          message: text,
+          user_id: currentUserId 
+        }),
       });
 
       if (!res.ok) {
@@ -131,7 +137,7 @@ const ChatAI = () => {
       const data = await res.json();
       const botMsg = {
         id: Date.now() + 1,
-        text: data.answer,
+        text: data.answer || data.response, // Dự phòng nếu API trả về 'response' thay vì 'answer'
         isBot: true,
         products: data.products || null,
       };
@@ -158,26 +164,21 @@ const ChatAI = () => {
 
   const handleViewProduct = (productId) => {
     navigate(`/product/${productId}`);
-    // Thu nhỏ chat lại thay vì đóng hẳn khi khách xem sản phẩm
     setIsMinimized(true);
   };
 
-  // ==========================================
-  // LOGIC ẨN CHAT BOX Ở CÁC TRANG AUTH
-  // ==========================================
   const hiddenRoutes = ['/login', '/register', '/forgot-password'];
   if (hiddenRoutes.includes(location.pathname)) {
-    return null; // Không render gì cả nếu đang ở trang Đăng nhập/Đăng ký
+    return null; 
   }
 
   return (
     <div className="fixed bottom-6 right-6 z-[100] font-sans">
-      {/* Nút mở chat (khi bị đóng hẳn) */}
       {!isOpen && (
         <button
           onClick={() => {
             setIsOpen(true);
-            setIsMinimized(false); // Mở lên thì bung to ra luôn
+            setIsMinimized(false); 
           }}
           className="bg-brand text-white px-5 py-3.5 rounded-full shadow-2xl flex items-center gap-3 transition-all hover:bg-brand-hover animate-bounce-slow"
         >
@@ -186,16 +187,14 @@ const ChatAI = () => {
         </button>
       )}
 
-      {/* Cửa sổ chat */}
       {isOpen && (
         <div
           className={`bg-white w-[380px] rounded-[1.75rem] shadow-2xl border border-slate-100 flex flex-col overflow-hidden transition-all duration-300 ease-in-out ${isMinimized ? 'h-auto' : 'h-[580px]'
             }`}
         >
-          {/* Header */}
           <div
             className="bg-brand px-5 py-4 text-white flex justify-between items-center shrink-0 cursor-pointer"
-            onClick={() => isMinimized && setIsMinimized(false)} // Bấm vào header lúc thu nhỏ sẽ bung ra
+            onClick={() => isMinimized && setIsMinimized(false)} 
           >
             <div className="flex items-center gap-3">
               <div className="bg-white/20 p-2 rounded-xl">
@@ -212,11 +211,10 @@ const ChatAI = () => {
               </div>
             </div>
 
-            {/* Cụm nút điều khiển */}
             <div className="flex items-center gap-1">
               <button
                 onClick={(e) => {
-                  e.stopPropagation(); // Tránh kích hoạt sự kiện click của thẻ cha
+                  e.stopPropagation(); 
                   setIsMinimized(!isMinimized);
                 }}
                 className="hover:bg-white/20 p-1.5 rounded-lg transition-colors"
@@ -237,7 +235,6 @@ const ChatAI = () => {
             </div>
           </div>
 
-          {/* Khu vực hiển thị tin nhắn (Chỉ hiện khi KHÔNG bị thu nhỏ) */}
           {!isMinimized && (
             <>
               <div
@@ -259,7 +256,6 @@ const ChatAI = () => {
                 )}
               </div>
 
-              {/* Ô nhập liệu */}
               <div className="px-4 py-3 bg-white border-t border-slate-100 flex gap-2 items-center shrink-0">
                 <input
                   type="text"
