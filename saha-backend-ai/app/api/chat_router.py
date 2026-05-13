@@ -77,8 +77,9 @@ async def process_chat(request: ChatRequest):
             .execute()
         
         # Đảo ngược lại để đúng thứ tự thời gian
-        context = [{"role": h['role'], "parts": [h['content']]} for h in reversed(history_data.data)]
-
+        # context = [{"role": h['role'], "parts": [h['content']]} for h in reversed(history_data.data)]
+        # Đảo ngược lại để đúng thứ tự thời gian, cấu trúc chuẩn cho SDK mới
+        context = [{"role": h['role'], "parts": [{"text": h['content']}]} for h in reversed(history_data.data)]
         # 2. GỌI AI AGENT (Truyền thêm context vào để AI nhớ)
         # Lưu ý: Lát nữa bạn mở file app/agent/chatbot.py ra và thêm tham số history vào hàm chat_with_saha nhé
         raw_answer = chat_with_saha(user_msg, history=context)
