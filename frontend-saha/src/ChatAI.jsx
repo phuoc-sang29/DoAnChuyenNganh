@@ -112,9 +112,16 @@ const ChatAI = () => {
     setLoading(true);
 
     try {
-      // 1. LẤY ID NGƯỜI DÙNG TỪ SUPABASE
+      // 1. LẤY ID NGƯỜI DÙNG TỪ SUPABASE (HOẶC TẠO ID ẢO CHO KHÁCH)
       const { data: { user } } = await supabase.auth.getUser();
-      const currentUserId = user ? user.id : "guest-session-anonymous";
+      
+      let guestId = localStorage.getItem('saha_guest_id');
+      if (!guestId) {
+          guestId = 'guest-' + Math.random().toString(36).substr(2, 9);
+          localStorage.setItem('saha_guest_id', guestId);
+      }
+
+      const currentUserId = user ? user.id : guestId;
 
       // 2. GỬI KÈM USER_ID TRONG BODY
       const res = await fetch(import.meta.env.VITE_AI_URL + '/api/chat', {
