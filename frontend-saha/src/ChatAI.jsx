@@ -87,6 +87,51 @@ const ChatAI = () => {
   const [loading, setLoading] = useState(false);
   const containerRef = useRef(null);
 
+  // LOGIC MỚI: Lắng nghe việc đổi tài khoản để dọn dẹp tin nhắn cũ trên màn hình
+  useEffect(() => {
+    const checkUserChange = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      let guestId = localStorage.getItem('saha_guest_id');
+      if (!guestId) {
+        guestId = 'guest-' + Math.random().toString(36).substr(2, 9);
+        localStorage.setItem('saha_guest_id', guestId);
+      }
+      
+      const currentId = user ? user.id : guestId;
+      const lastSavedId = sessionStorage.getItem('saha_last_user_id');
+
+      // Nếu phát hiện ID đổi (Vừa đăng nhập hoặc vừa đăng xuất)
+      if (lastSavedId && lastSavedId !== currentId) {
+        sessionStorage.removeItem('saha_chat_history'); // Xóa rác màn hình
+        setMessages([
+          {
+            id: 1,
+            text: 'Chào bạn! Mình là Dược sĩ AI của SaHa.\nBạn cần tư vấn sức khỏe hoặc tìm sản phẩm gì không?',
+            isBot: true,
+            products: null,
+          },
+        ]);
+      }
+      sessionStorage.setItem('saha_last_user_id', currentId);
+    };
+
+    checkUserChange();
+
+    // Trigger mỗi khi bấm Login hoặc Logout
+    const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+        checkUserChange();
+      }
+    });
+
+    return () => {
+      if (authListener && authListener.subscription) {
+        authListener.subscription.unsubscribe();
+      }
+    };
+  }, []);
+
   useEffect(() => {
     sessionStorage.setItem('saha_chat_history', JSON.stringify(messages));
   }, [messages]);
@@ -112,15 +157,13 @@ const ChatAI = () => {
     setLoading(true);
 
     try {
-      // 1. LẤY ID NGƯỜI DÙNG TỪ SUPABASE (HOẶC TẠO ID ẢO CHO KHÁCH)
+      // 1. LẤY ID NGƯỜI DÙNG TỪ SUPABASE HOẶC ID KHÁCH
       const { data: { user } } = await supabase.auth.getUser();
-      
       let guestId = localStorage.getItem('saha_guest_id');
       if (!guestId) {
           guestId = 'guest-' + Math.random().toString(36).substr(2, 9);
           localStorage.setItem('saha_guest_id', guestId);
       }
-
       const currentUserId = user ? user.id : guestId;
 
       // 2. GỬI KÈM USER_ID TRONG BODY
