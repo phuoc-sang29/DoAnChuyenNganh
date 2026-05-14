@@ -4,11 +4,11 @@ const cheerio = require('cheerio');
 const API_URL = import.meta.env.VITE_API_URL + '/api/Blogs';
 
 async function crawlDeepBlogs() {
-    console.log("🚀 Đang khởi động Siêu Crawler cào nội dung thật...");
+    console.log(" Đang khởi động Siêu Crawler cào nội dung thật...");
     
     try {
         // 1. Quét danh mục Dinh Dưỡng của VNExpress để lấy Link bài
-        console.log("⏳ Đang quét danh sách bài viết từ VNExpress Dinh Dưỡng...");
+        console.log(" Đang quét danh sách bài viết từ VNExpress Dinh Dưỡng...");
         const response = await axios.get('https://vnexpress.net/suc-khoe/dinh-duong');
         const $ = cheerio.load(response.data);
         
@@ -30,7 +30,7 @@ async function crawlDeepBlogs() {
             }
         });
 
-        console.log(`✅ Tìm thấy ${articles.length} bài. Bắt đầu chui vào từng bài để cào chữ...`);
+        console.log(` Tìm thấy ${articles.length} bài. Bắt đầu chui vào từng bài để cào chữ...`);
 
         // 2. Vòng lặp truy cập vào từng link để cào chi tiết nội dung
         let successCount = 0;
@@ -67,10 +67,10 @@ async function crawlDeepBlogs() {
             }
         }
 
-        console.log(`🎉 Tuyệt vời! Đã đưa thành công ${successCount} bài viết CHẤT LƯỢNG CAO lên web SaHa.`);
+        console.log(` Tuyệt vời! Đã đưa thành công ${successCount} bài viết CHẤT LƯỢNG CAO lên web SaHa.`);
 
     } catch (error) {
-        console.error("❌ Lỗi Crawler tổng:", error.message);
+        console.error(" Lỗi Crawler tổng:", error.message);
     }
 }
 
